@@ -293,16 +293,6 @@ package com.doitflash.remote.youtube
 			function onHttp(event:HTTPStatusEvent):void
 			{
 				dispatchEvent(new YouTubeLinkParserEvent(YouTubeLinkParserEvent.VIDEO_HEADER_RECEIVED, { headers:event.responseHeaders, url:$url } ));
-				
-				/*var lng:int = event.responseHeaders.length;
-				var i:int;
-				var currHeader:URLRequestHeader;
-				
-				for (i = 0; i < lng; i++ )
-				{
-					currHeader = event.responseHeaders[i];
-					trace(currHeader.name + " = " + currHeader.value);
-				}*/
 			}
 		}
 
