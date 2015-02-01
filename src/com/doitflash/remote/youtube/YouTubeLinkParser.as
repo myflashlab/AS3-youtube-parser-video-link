@@ -168,16 +168,6 @@ package com.doitflash.remote.youtube
 				_videoFormats.push(vars);
 			}
 			
-			/*for (i = 0; i < _videoFormats.length; i++)
-			{
-				for (var name:String in _videoFormats[i]) 
-				{
-					trace(name + " = " + _videoFormats[i][name])
-				}
-				
-				trace("---------------")
-			}*/
-			
 			dispatchEvent(new YouTubeLinkParserEvent(YouTubeLinkParserEvent.COMPLETE, _videoFormats));
 		}
 		
@@ -212,55 +202,6 @@ package com.doitflash.remote.youtube
 			if (id.indexOf("&") > -1) return null;
 			
 			return id;
-			
-			/*var toungeTwister:String = "Peter Piper Picked a peck of pickled peppers";
-			var pattern:RegExp = /pick|peck/g;
-			var replaced:String = toungeTwister.replace( pattern, "Match");
-			trace(replaced);*/
-			
-			/*var compassPoints:String = "Naughty Naotersn elephants squirt water";
-			var firstWordRegExp:RegExp = /N(a|o)/g;
-			trace( compassPoints.replace( firstWordRegExp, "MATCH" ) );*/
-			
-			/*var favoriteFruit:String = "bananas";
-			var bananaRegExp:RegExp = /b(an)+a/;
-			trace( bananaRegExp.test( favoriteFruit ) );*/
-			
-			/*//Exec() method returns an Object containing the groups that were matched
-			var htmlText:String = "<strong>This text is important</strong> while this text is not as important <strong>ya</strong>";
-			var strongRegExp:RegExp = /<strong>(.*?)<\/strong>/g;
-			var matches:Object = strongRegExp.exec( htmlText);
-			for ( var name:String in matches ) 
-			{
-				trace(">> " + name + ": " + matches[name] );
-			}*/
-			
-			
-			/*var email:String = "c@chrisaiv.comm";
-			var emailRegExp:RegExp = /^([a-zA-Z0-9_-]+)@([a-zA-Z0-9.-]+)\.([a-zA-Z]{2,4})$/i;
-			var catches:Object = emailRegExp.exec( email );
-			for ( var name:String in catches ) 
-			{
-				trace(">> " + name + ": " + catches[name] );
-			}
-			trace( "This e-mail's validity is: " + emailRegExp.test( email ) );*/
-			
-			
-			/*//Test the validity of an e-mail
-			var validEmailRegExp:RegExp = /([a-z0-9._-]+)@([a-z0-9.-]+)\.([a-z]{2,4})/;
-			trace( validEmailRegExp.test( "a1a@c.info" ) );*/
-			
-			
-			/*//Return a Boolean if there is a pattern match
-			var phoneNumberPattern:RegExp = /\d\d\d-\d\d\d-\d\d\d\d/;
-			trace( phoneNumberPattern.test( "347-555-5555" )); //true
-			trace( phoneNumberPattern.test("Call 800-123-4567 now!")); //true
-			trace( phoneNumberPattern.test("Call now!")); //false */
-			
-			
-			/*//Return the index number of the occurence is there is a pattern match
-			var themTharHills:String = "hillshillshillsGOLDhills";
-			trace(themTharHills.search(/gold/i)); //15*/
 		}
 		
 		
@@ -268,7 +209,7 @@ package com.doitflash.remote.youtube
 // -------------------------------------------------------------------------------------- Methods
 
 		/**
-		 * 
+		 * Pass in a standard youtube link to start parsing the link. watch out for the listeners to see the results.
 		 * 
 		 * @param	$youtubeUrl
 		 */
