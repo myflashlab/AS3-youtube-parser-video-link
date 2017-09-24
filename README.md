@@ -1,4 +1,4 @@
-##AS3-youtube-parser-video-link##
+## AS3-youtube-parser-video-link ##
 This AS3 library can parse standard youtube links like **https://www.youtube.com/watch?v=QowwaefoCec** 
 and will extract different elements of that video like available direct video addresses, video title
 and video thumbnail. It works with public unrestricted video files only.
