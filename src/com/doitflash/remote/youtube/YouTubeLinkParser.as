@@ -223,7 +223,7 @@ package com.doitflash.remote.youtube
 				dispatchEvent(new YouTubeLinkParserEvent(YouTubeLinkParserEvent.ERROR, {msg:"invalid link!"} ));
 			}
 			
-			var vidInfo:String = 'http://www.youtube.com/get_video_info?&video_id=' + _videoId + '&asv=3&el=detailpage&hl=en_US';
+			var vidInfo:String = 'https://www.youtube.com/get_video_info?&video_id=' + _videoId + '&asv=3&el=detailpage&hl=en_US';
 			
 			// setup the request method to connect to server
 			var request:URLRequest = new URLRequest(vidInfo);
