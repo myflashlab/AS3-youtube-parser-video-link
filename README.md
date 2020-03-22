@@ -47,12 +47,11 @@ function onComplete(e:YouTubeLinkParserEvent):void
 	// let's find the VideoType.VIDEO_MP4 video format in VideoQuality.MEDIUM for this video
 	// NOTICE: you should find your own way of selecting a video format! as different videos may not have all formats or qualities available!
 	      
-	var currVideoData:URLVariables;
 	var chosenVideo:String;
 	for (var i:int = 0; i < _ytParser.videoFormats.length; i++) 
 	{
-		currVideoData = _ytParser.videoFormats[i];
-		if (currVideoData.type == VideoType.VIDEO_MP4 && currVideoData.quality == VideoQuality.MEDIUM)
+		var currVideoData:Object = _ytParser.videoFormats[i];
+		if (currVideoData.mimeType.indexOf(VideoType.VIDEO_MP4) > -1 && currVideoData.quality == VideoQuality.MEDIUM)
 		{
 			chosenVideo = currVideoData.url;
 			break;

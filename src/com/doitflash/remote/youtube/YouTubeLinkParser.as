@@ -69,12 +69,11 @@ package com.doitflash.remote.youtube
 	 *		// let's find the VideoType.VIDEO_MP4 video format in VideoQuality.MEDIUM for this video
 	 *		// NOTICE: you should find your own way of selecting a video format! as different videos may not have all formats or qualities available!
 	 *		
-	 *		var currVideoData:URLVariables;
 	 *		var chosenVideo:String;
 	 *		for (var i:int = 0; i &lt; _ytParser.videoFormats.length; i++) 
 	 *		{
-	 *			currVideoData = _ytParser.videoFormats[i];
-	 *			if (currVideoData.type == VideoType.VIDEO_MP4 &amp;&amp; currVideoData.quality == VideoQuality.MEDIUM)
+	 *			var currVideoData:Object = _ytParser.videoFormats[i];
+	 *			if (currVideoData.mimeType.indexOf(VideoType.VIDEO_MP4) &gt; -1 &amp;&amp; currVideoData.quality == VideoQuality.MEDIUM)
 	 *			{
 	 *				chosenVideo = currVideoData.url;
 	 *				break;
@@ -118,10 +117,8 @@ package com.doitflash.remote.youtube
 	 */
 	public class YouTubeLinkParser extends EventDispatcher
 	{
-		private var _orginalLink:String;
-		private var _videoId:String;
+		private static const USER_AGENT:String = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:8.0.1)";
 		private var _thumbLink:String;
-		private var _videoTitleOrg:String;
 		private var _videoTitle:String;
 		private var _videoFormats:Array;
 		
@@ -132,41 +129,43 @@ package com.doitflash.remote.youtube
 		
 // -------------------------------------------------------------------------------------- functions
 
+		private function onHttpResponse(e:HTTPStatusEvent):void
+		{
+		
+		}
+		
 		private function onRawDataReceived(e:Event):void
 		{
+			var i:int;
+			var vars:URLVariables;
+			var obj:Object;
 			var loader:URLLoader = e.target as URLLoader;
 			
 			// remove listeners for this request
 			loader.removeEventListener(Event.COMPLETE, onRawDataReceived);
 			loader.removeEventListener(IOErrorEvent.IO_ERROR, onFailure);
+			loader.removeEventListener(HTTPStatusEvent.HTTP_RESPONSE_STATUS, onHttpResponse);
 			
 			var videoVars:URLVariables = loader.data;
-			
-			// variables that we need to work with:
-			_thumbLink = videoVars.thumbnail_url;
-			_videoTitleOrg = videoVars.title;
-			_videoTitle = cleanTitle(videoVars.title);
-			
-			var formatsRaw:Array = String(videoVars.url_encoded_fmt_stream_map).split(",");
-			var lng:int = formatsRaw.length;
-			var i:int;
-			var vars:URLVariables;
-			var urlVars:URLVariables;
 			_videoFormats = [];
+			var player_response:Object = JSON.parse(videoVars.player_response);
+			var formats:Array = player_response.streamingData.formats;
+			var adaptiveFormats:Array = player_response.streamingData.adaptiveFormats;
 			
-			for (i = 0; i < lng; i++)
+			for (i = 0; i < formats.length; i++)
 			{
-				vars = new URLVariables(formatsRaw[i]);
-				vars.type = String(vars.type).split(";")[0];
-				urlVars = new URLVariables(decodeURI(vars.url));
-				vars.expire = urlVars.expire;
-				vars.ipbits = urlVars.ipbits;
-				vars.ip = urlVars.ip;
-				vars.url = vars.url + "&title=" + _videoTitle;
-				delete(vars.fallback_host)
-				
-				_videoFormats.push(vars);
+				obj = formats[i];
+				_videoFormats.push(obj);
 			}
+			
+			for (i = 0; i < adaptiveFormats.length; i++)
+			{
+				obj = adaptiveFormats[i];
+				_videoFormats.push(obj);
+			}
+			
+			_videoTitle = player_response.videoDetails.title;
+			_thumbLink = player_response.videoDetails.thumbnail.thumbnails[0].url;
 			
 			dispatchEvent(new YouTubeLinkParserEvent(YouTubeLinkParserEvent.COMPLETE, _videoFormats));
 		}
@@ -178,18 +177,9 @@ package com.doitflash.remote.youtube
 			// remove listeners for this request
 			loader.removeEventListener(Event.COMPLETE, onRawDataReceived);
 			loader.removeEventListener(IOErrorEvent.IO_ERROR, onFailure);
+			loader.removeEventListener(HTTPStatusEvent.HTTP_RESPONSE_STATUS, onHttpResponse);
 			
 			dispatchEvent(new YouTubeLinkParserEvent(YouTubeLinkParserEvent.ERROR, {msg:"could not connect to server!"} ));
-		}
-		
-		private function cleanTitle($str:String):String
-		{
-			$str = $str.replace(" ", "-");
-			
-			var pattern:RegExp = /[^A-Za-z0-9\-]/g;
-			$str = $str.replace(pattern, "");
-			
-			return $str;
 		}
 		
 		private function extractYoutubeId($link:String):String
@@ -215,24 +205,23 @@ package com.doitflash.remote.youtube
 		 */
 		public function parse($youtubeUrl:String):void
 		{
-			_orginalLink = $youtubeUrl;
-			_videoId = extractYoutubeId(_orginalLink);
+			var videoId:String = extractYoutubeId($youtubeUrl);
 			
-			if (!_videoId)
+			if (!videoId)
 			{
 				dispatchEvent(new YouTubeLinkParserEvent(YouTubeLinkParserEvent.ERROR, {msg:"invalid link!"} ));
 			}
 			
-			var vidInfo:String = 'https://www.youtube.com/get_video_info?&video_id=' + _videoId + '&asv=3&el=detailpage&hl=en_US';
+			var vidInfo:String = 'https://www.youtube.com/get_video_info?&video_id=' + videoId + '&asv=3&el=detailpage&hl=en_US';
 			
 			// setup the request method to connect to server
 			var request:URLRequest = new URLRequest(vidInfo);
-			request.userAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:8.0.1)";
-			request.method = URLRequestMethod.POST;
-			request.manageCookies = true;
+			request.userAgent = USER_AGENT;
+			request.method = URLRequestMethod.GET;
 			
 			// add listeners and send out the information
 			var loader:URLLoader = new URLLoader();
+			loader.addEventListener(HTTPStatusEvent.HTTP_RESPONSE_STATUS, onHttpResponse);
 			loader.addEventListener(Event.COMPLETE, onRawDataReceived);
 			loader.addEventListener(IOErrorEvent.IO_ERROR, onFailure);
 			loader.dataFormat = URLLoaderDataFormat.VARIABLES;
@@ -242,42 +231,13 @@ package com.doitflash.remote.youtube
 		/**
 		 * Use this method to check if this video file is available for download or not.
 		 * add the following listeners to manage it:
-		 *
-		 * <listing version="3.0">
-		 * _ytParser.addEventListener(YouTubeLinkParserEvent.VIDEO_HEADER_RECEIVED, onHeadersReceived);
-		 * _ytParser.addEventListener(YouTubeLinkParserEvent.VIDEO_HEADER_ERROR, onHeadersError);
-		 * </listing>
-		 * 
-		 * if video is availble, you should be receiving the folwoing information (including the video size in bytes "Content-Length")
-		 * <listing version="3.0">
-		 * function onHeadersReceived(e:YouTubeLinkParserEvent):void
-		 * {
-		 * 		for (var i:int = 0; i &lt; e.param.headers.length; i++ )
-		 * 		{
-		 * 			trace(e.param.headers.name + " = " + e.param.headers.value);
-		 * 		}
-		 * }
-		 * 
-		 * 
-		 *	Last-Modified = Fri, 17 Oct 2014 21:46:47 GMT
-		 *	Content-Type = video/webm
-		 *	Content-Disposition = attachment; filename="AR-AirNativeExtensionsupportingAndroidandiOS.webm"
-		 *	Date = Thu, 06 Nov 2014 16:27:30 GMT
-		 *	Expires = Thu, 06 Nov 2014 16:27:30 GMT
-		 *	Cache-Control = private, max-age=21299
-		 *	Accept-Ranges = bytes
-		 *	Content-Length = 5458106
-		 *	Connection = close
-		 *	X-Content-Type-Options = nosniff
-		 *	Server = gvs 1.0
-		 * </listing>
 		 * 
 		 * @param	$url	video url retrived from this library
 		 */
 		public function getHeaders($url:String):void
 		{
 			var request:URLRequest = new URLRequest($url);
-			request.userAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:8.0.1)";
+			request.userAgent = USER_AGENT;
 			request.method = URLRequestMethod.HEAD;
 			
 			var loader:URLLoader = new URLLoader();
@@ -310,7 +270,7 @@ package com.doitflash.remote.youtube
 		
 		public function get title():String
 		{
-			return _videoTitleOrg;
+			return _videoTitle;
 		}
 
 	}
